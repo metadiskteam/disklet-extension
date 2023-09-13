@@ -85,8 +85,12 @@ export async function getXPublicKey() {
   return await createAction('GetXPublicKey', 'query')
 }
 
-export async function getBalance() {
-  return await createAction('GetBalance', 'query')
+export async function getBalance(params?: { path: string }) {
+  return await createAction('GetBalance', 'query', params)
+}
+
+export async function getUtxos(params?: { path: string }) {
+  return await createAction('GetUtxos', 'query', params)
 }
 
 export async function eciesEncrypt(params: { message: string }) {
@@ -95,6 +99,14 @@ export async function eciesEncrypt(params: { message: string }) {
 
 export async function eciesDecrypt(params: { encrypted: string }) {
   return await createAction('EciesDecrypt', 'authorize', params)
+}
+
+export async function signMessage(params: { message: string }) {
+  return await createAction('SignMessage', 'authorize', params)
+}
+
+export async function verifySignature(params: { message: string; signature: string }) {
+  return await createAction('VerifySignature', 'query', params)
 }
 
 type SigningTransaction = {
@@ -111,10 +123,6 @@ export async function signTransaction(params: { transaction: SigningTransaction 
 
 export async function signTransactionEx(params: { transaction: SigningTransaction }) {
   return await createAction('SignTransactionEx', 'authorize', params)
-}
-
-export async function signMessage(params: { message: string }) {
-  return await createAction('SignMessage', 'query', params)
 }
 
 type TransferTask = {

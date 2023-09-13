@@ -6,6 +6,7 @@ import {
   getPublicKey,
   getXPublicKey,
   getBalance,
+  getUtxos,
   getTokenBalance,
   transfer,
   merge,
@@ -13,13 +14,13 @@ import {
   switchNetwork,
   eciesEncrypt,
   eciesDecrypt,
+  signMessage,
+  verifySignature,
   signTransaction,
-  signTransactionEx,
-  signMessage
+  signTransactionEx
 } from './actions'
 
 type Metalet = {
-  //   signMessage: any
   connect: any
   disconnect: any
   isConnected: any
@@ -32,8 +33,9 @@ type Metalet = {
   merge: any
   signTransaction: any
   signTransactionEx: any
-  signMessage:any
-  //   getUtxos: any
+  signMessage: any
+  // verifySignature: any
+  getUtxos: any
   //   getActivities: any
   transfer: any
   // transferAll: any
@@ -73,6 +75,7 @@ const metalet: Metalet = {
   getPublicKey,
   getXPublicKey,
   getBalance,
+  getUtxos,
   transfer,
   merge,
   signTransaction,

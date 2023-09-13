@@ -3,6 +3,7 @@ import { Address } from 'mvc-std-lib';
 import { getNetwork } from './network'
 import { getAddress, getPrivateKey } from './account'
 
+
 export async function signTransactionEx (txHex:string, inputInfos:any[]): Promise<any[]> {
   console.log('---signTransactionEx--entry-txHex',txHex)
   console.log('---signTransactionEx--entry-inputInfos',inputInfos)

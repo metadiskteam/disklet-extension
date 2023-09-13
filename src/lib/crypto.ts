@@ -1,4 +1,5 @@
 import { BN, mvc } from 'meta-contract'
+import { Buffer } from 'buffer'
 
 export function eciesEncrypt(message: string, privateKey: mvc.PrivateKey): string {
   const publicKey = privateKey.toPublicKey()
@@ -20,7 +21,32 @@ export function eciesDecrypt(encrypted: string, privateKey: mvc.PrivateKey): str
   return message
 }
 
-export const sign = (
+export const signMessage = (wif: string, message: string, encoding?: 'utf-8' | 'base64' | 'hex' | 'utf8') => {
+  let privateKey = mvc.PrivateKey.fromWIF(wif)
+  const messageHash = mvc.crypto.Hash.sha256(Buffer.from(message))
+
+  let sigBuf = mvc.crypto.ECDSA.sign(messageHash, privateKey).toBuffer()
+
+  let signature: string
+  switch (encoding) {
+    case 'utf-8':
+    case 'utf8':
+      signature = sigBuf.toString('utf-8')
+      break
+    case 'base64':
+      signature = sigBuf.toString('base64')
+      break
+    case 'hex':
+    default:
+      signature = sigBuf.toString('hex')
+      break
+  }
+  return {
+    signature,
+  }
+}
+
+export const signTransaction = (
   wif: string,
   {
     txHex,

@@ -4,15 +4,14 @@ import { getNetwork } from './lib/network'
 import { NOTIFICATION_HEIGHT, NOTIFICATION_WIDTH } from './data/config'
 import connector from './lib/connector'
 import { getCurrentAccount } from './lib/account'
-import { signTransactionEx } from './lib/tx-sign-ex'
 import { isLocked } from './lib/password'
-
-import { hostsWhiteList } from './data/hosts'
+import { signTransactionEx } from './lib/tx-sign-ex'
+import { hostsWhiteList, authorizeActionsWhiteList } from './data/white'
+import authorizeActions from './data/authorize-actions'
 
 type ActionType = keyof typeof actions
 
 getNetwork()
-
 
 browser.runtime.onMessage.addListener(async (msg, sender, response) => {
   const actionName = msg.action.replace('authorize-', '').replace('query-', '')
@@ -45,13 +44,31 @@ browser.runtime.onMessage.addListener(async (msg, sender, response) => {
     return
   }
 
-
-
   // 授权请求
   if (msg.action?.startsWith('authorize')) {
     const host = msg.host as string
+    const action = authorizeActions[actionName]
+    //console.log('action:',authorizeActions,actionName,action,host,authorizeActionsWhiteList,hostsWhiteList)
+    if (action && authorizeActionsWhiteList.includes(actionName) && hostsWhiteList.includes(host)) {
+      action.process(msg.params, msg.host as string).then(async (res: any) => {
+        // 发送消息给 content-script-tab
+        const [tab] = await browser.tabs.query({ active: true, windowType: 'normal', currentWindow: true })
+        if (tab?.id) {
+          const response = {
+            nonce: msg.nonce,
+            channel: 'from-metaidwallet',
+            action: `respond-${actionName}`,
+            host: msg.host as string,
+            res,
+          }
+          browser.tabs.sendMessage(tab.id, response)
+        }
+      })
+      return true;
+    }
+    
     console.log('--host--',host)
-    if(actionName === 'SignTransactionEx' && hostsWhiteList.includes(host)){
+    if(actionName === 'SignTransactionEx2222' && hostsWhiteList.includes(host)){
       console.log('--signTransactionEx')
       // 发送消息给 content-script-tab
       const tab = (
@@ -67,6 +84,7 @@ browser.runtime.onMessage.addListener(async (msg, sender, response) => {
         //   sigList[i] = sign(wif, params.list[i])
         // }
 
+        actions[actionName]
         const signature = await signTransactionEx(msg.params.transaction.txHex,msg.params.transaction.inputInfos)
         const response = {
           nonce: msg.nonce,

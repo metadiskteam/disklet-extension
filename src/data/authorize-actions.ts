@@ -7,7 +7,7 @@ import * as EciesEncrypt from '../lib/actions/ecies-encrypt'
 import * as EciesDecrypt from '../lib/actions/ecies-decrypt'
 import * as SignTransaction from '../lib/actions/sign-transaction'
 import * as SignTransactionEx from '../lib/actions/sign-transaction-ex'
-
+import * as SignMessage from '../lib/actions/sign-message'
 import * as Merge from '../lib/actions/merge'
 
 function doNothing() {}
@@ -81,7 +81,6 @@ export default {
     estimate: doNothing,
     closeAfterProcess: true,
   },
-
   SignTransactionEx: {
     name: 'Sign a Transaction',
     title: 'Sign a Transaction',
@@ -90,7 +89,6 @@ export default {
     estimate: doNothing,
     closeAfterProcess: true,
   },
-
   EciesEncrypt: {
     name: 'ECIES Encrypt',
     title: 'ECIES Encrypt',
@@ -104,6 +102,15 @@ export default {
     title: 'ECIES Decrypt',
     description: ['Decrypt an encrypted message with ECIES algorithm'],
     process: EciesDecrypt.process,
+    estimate: doNothing,
+    closeAfterProcess: true,
+  },
+
+  SignMessage: {
+    name: 'Sign Message',
+    title: 'Sign Message',
+    description: ['Sign a message with ECDSA algorithm'],
+    process: SignMessage.process,
     estimate: doNothing,
     closeAfterProcess: true,
   },

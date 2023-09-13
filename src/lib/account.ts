@@ -1,5 +1,6 @@
 import { Ref, ref } from 'vue'
 import { fetchSpaceBalance } from '../queries/balance'
+import { fetchUtxos } from '../queries/utxos'
 import { getStorage, setStorage } from './storage'
 import { generateRandomString } from './helpers'
 import { getNetwork } from './network'
@@ -251,6 +252,23 @@ export async function getBalance() {
   return balance
 }
 
+export async function getUtxos(params?: { path?: string }) {
+  const account = await getCurrentAccount()
+  console.log('account', account)
+  if (!account) {
+    return null
+  }
+  if (!(params && params.path)) {
+    return await fetchUtxos(address.value)
+  }
+
+  // use specific path
+  const addressByPath = await getAddress(params)
+  if (typeof addressByPath === 'string') {
+    return await fetchUtxos(addressByPath)
+  }
+}
+
 export async function updateName(name: string) {
   const account = await getCurrentAccount()
   if (!account) {
@@ -278,9 +296,9 @@ type AccountManager = {
         status: string
       }
   >
-  getPrivateKey: ({ path }: { path?: string }) => Promise<any>
   getXPublicKey: () => Promise<string | null>
   getBalance: () => Promise<Awaited<ReturnType<typeof fetchSpaceBalance>> | null>
+  getUtxos: (params?: any) => Promise<any>
   updateName: (name: string) => Promise<void>
 }
 
@@ -293,9 +311,9 @@ accountManager.add = addAccount
 accountManager.connect = connectAccount
 accountManager.getAddress = getAddress
 accountManager.getPublicKey = getPublicKey
-accountManager.getPrivateKey = getPrivateKey
 accountManager.getXPublicKey = getXPublicKey
 accountManager.getBalance = getBalance
+accountManager.getUtxos = getUtxos
 accountManager.removeCurrent = removeCurrentAccount
 accountManager.updateName = updateName
 
