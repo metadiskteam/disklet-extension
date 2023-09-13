@@ -5,6 +5,8 @@ import * as GetXPublicKey from '../lib/actions/get-extended-public-key'
 import * as GetBalance from '../lib/actions/get-balance'
 import * as GetNetwork from '../lib/actions/get-network'
 import * as GetTokenBalance from '../lib/actions/token/get-balance'
+import * as SignMessage from '../lib/actions/sign-message'
+
 
 type QueryAction = {
   process: Function
@@ -18,4 +20,5 @@ export default {
   GetBalance,
   GetTokenBalance,
   GetXPublicKey,
+  SignMessage,
 } as { [key: string]: QueryAction }

@@ -15,6 +15,7 @@ import {
   eciesDecrypt,
   signTransaction,
   signTransactionEx,
+  signMessage
 } from './actions'
 
 type Metalet = {
@@ -31,6 +32,7 @@ type Metalet = {
   merge: any
   signTransaction: any
   signTransactionEx: any
+  signMessage:any
   //   getUtxos: any
   //   getActivities: any
   transfer: any
@@ -75,6 +77,7 @@ const metalet: Metalet = {
   merge,
   signTransaction,
   signTransactionEx,
+  signMessage,
 
   eciesEncrypt,
   eciesDecrypt,

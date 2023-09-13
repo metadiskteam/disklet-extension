@@ -113,6 +113,10 @@ export async function signTransactionEx(params: { transaction: SigningTransactio
   return await createAction('SignTransactionEx', 'authorize', params)
 }
 
+export async function signMessage(params: { message: string }) {
+  return await createAction('SignMessage', 'query', params)
+}
+
 type TransferTask = {
   genesis?: string
   codehash?: string

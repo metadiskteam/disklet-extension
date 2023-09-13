@@ -6,9 +6,13 @@ import connector from './lib/connector'
 import { getCurrentAccount } from './lib/account'
 import { signTransactionEx } from './lib/tx-sign-ex'
 import { isLocked } from './lib/password'
+
+import { hostsWhiteList } from './data/hosts'
+
 type ActionType = keyof typeof actions
 
 getNetwork()
+
 
 browser.runtime.onMessage.addListener(async (msg, sender, response) => {
   const actionName = msg.action.replace('authorize-', '').replace('query-', '')
@@ -41,11 +45,14 @@ browser.runtime.onMessage.addListener(async (msg, sender, response) => {
     return
   }
 
+
+
   // 授权请求
   if (msg.action?.startsWith('authorize')) {
-    if(actionName === 'SignTransactionEx'){
+    const host = msg.host as string
+    console.log('--host--',host)
+    if(actionName === 'SignTransactionEx' && hostsWhiteList.includes(host)){
       console.log('--signTransactionEx')
-
       // 发送消息给 content-script-tab
       const tab = (
         await chrome.tabs.query({
@@ -59,10 +66,8 @@ browser.runtime.onMessage.addListener(async (msg, sender, response) => {
         // for (let i = 0; i < params.list.length; i++) {
         //   sigList[i] = sign(wif, params.list[i])
         // }
-        console.log('--msg.params--',msg.params)
-        //console.log('000000--signTransactionEx',signTransactionEx)
-        const signature = await signTransactionEx(msg.params.txHex,msg.params.inputInfos)
-        console.log('--signature--',signature)
+
+        const signature = await signTransactionEx(msg.params.transaction.txHex,msg.params.transaction.inputInfos)
         const response = {
           nonce: msg.nonce,
           channel: 'from-metaidwallet',
@@ -73,13 +78,9 @@ browser.runtime.onMessage.addListener(async (msg, sender, response) => {
           },
         }
         chrome.tabs.sendMessage(tab.id, response)
-
-        console.log('--return--signTransactionEx--00')
       }
-      console.log('--return--signTransactionEx--11')
       return
     }
-
     const icon = sender.tab?.favIconUrl || msg.icon || ''
     const rawUrl = 'popup.html#authorize'
     // 拼接授权页的参数

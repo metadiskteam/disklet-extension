@@ -25,10 +25,10 @@ export async function signTransactionEx (txHex:string, inputInfos:any[]): Promis
               if(v.address!==(mainAddress)){
                   throw new Error("unsupported address in inputInfos")
               }else
-                privateKey = await getPrivateKey(v.address)
+                privateKey = await getPrivateKey()
           }else  {
               //传了address却不是地址，则视为path去衍生
-              privateKey = await getPrivateKey()
+              privateKey = await getPrivateKey({path:v.address})
           }
       }else
         privateKey = await getPrivateKey()

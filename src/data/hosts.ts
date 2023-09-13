@@ -6,3 +6,7 @@ export const TX_BROWSER_TESTNET_HOST = 'https://test.mvcscan.com'
 
 export const MVC_API_HOST = 'https://api.microvisionchain.com'
 export const METAFILE_API_HOST = 'https://filecdn.showpay.top'
+
+
+
+export const hostsWhiteList = ['localhost:8081','metadisk.purem.cc']

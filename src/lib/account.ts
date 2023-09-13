@@ -148,7 +148,7 @@ export async function getAddress(params?: { path?: string }): Promise<any> {
     const path = account.path
     const mneObj = mvc.Mnemonic.fromString(account.mnemonic)
     const hdpk = mneObj.toHDPrivateKey('', network)
-    const privateKey = hdpk.deriveChild(`m/44'/${path}'/0'/${params.path}`).privateKey
+    const privateKey = hdpk.deriveChild(`m/44'/${path}'/0'/${derivedPath(params.path)}`).privateKey
 
     return privateKey.toAddress(network).toString()
   } catch (e: any) {
@@ -180,7 +180,7 @@ export async function getPublicKey(params?: { path?: string }) {
     const path = account.path
     const mneObj = mvc.Mnemonic.fromString(account.mnemonic)
     const hdpk = mneObj.toHDPrivateKey('', network)
-    const privateKey = hdpk.deriveChild(`m/44'/${path}'/0'/${params.path}`).privateKey
+    const privateKey = hdpk.deriveChild(`m/44'/${path}'/0'/${derivedPath(params.path)}`).privateKey
     return privateKey.toPublicKey().toString()
   } catch (e: any) {
     return {
@@ -211,11 +211,19 @@ export async function getPrivateKey(params?: { path?: string }) : Promise<any>{
     const path = account.path
     const mneObj = mvc.Mnemonic.fromString(account.mnemonic)
     const hdpk = mneObj.toHDPrivateKey('', network)
-    const privateKey = hdpk.deriveChild(`m/44'/${path}'/0'/${params.path}`).privateKey
+    const privateKey = hdpk.deriveChild(`m/44'/${path}'/0'/${derivedPath(params.path)}`).privateKey
     return privateKey
   } catch (e: any) {
     return null
   }
+}
+
+function derivedPath(path:string){
+  let derivedPath = path
+  if (derivedPath.startsWith('/')) {
+    derivedPath = derivedPath.substr(1)
+  } 
+  return derivedPath
 }
 
 export async function getXPublicKey() {
