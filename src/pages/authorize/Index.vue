@@ -85,7 +85,7 @@ const runAction = async () => {
   if (tab?.id) {
     const response = {
       nonce,
-      channel: 'from-metaidwallet',
+      channel: 'from-metadiskwallet',
       action: `respond-${actionName}`,
       host: host as string,
       res: processRes,
@@ -109,7 +109,7 @@ const cancelAction = async () => {
   if (tab?.id) {
     const response = {
       nonce,
-      channel: 'from-metaidwallet',
+      channel: 'from-metadiskwallet',
       action: `respond-${actionName}`,
       host: host as string,
       res: {

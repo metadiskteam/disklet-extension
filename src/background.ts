@@ -32,7 +32,7 @@ browser.runtime.onMessage.addListener(async (msg, sender, response) => {
     if (tab?.id) {
       const response = {
         nonce: msg.nonce,
-        channel: 'from-metaidwallet',
+        channel: 'from-metadiskwallet',
         action: `respond-${actionName}`,
         host: msg.host as string,
         res: {
@@ -50,13 +50,14 @@ browser.runtime.onMessage.addListener(async (msg, sender, response) => {
     const action = authorizeActions[actionName]
     //console.log('action:',authorizeActions,actionName,action,host,authorizeActionsWhiteList,hostsWhiteList)
     if (action && authorizeActionsWhiteList.includes(actionName) && hostsWhiteList.includes(host)) {
+      console.log('静默处理:',actionName)
       action.process(msg.params, msg.host as string).then(async (res: any) => {
         // 发送消息给 content-script-tab
         const [tab] = await browser.tabs.query({ active: true, windowType: 'normal', currentWindow: true })
         if (tab?.id) {
           const response = {
             nonce: msg.nonce,
-            channel: 'from-metaidwallet',
+            channel: 'from-metadiskwallet',
             action: `respond-${actionName}`,
             host: msg.host as string,
             res,
@@ -65,39 +66,6 @@ browser.runtime.onMessage.addListener(async (msg, sender, response) => {
         }
       })
       return true;
-    }
-    
-    console.log('--host--',host)
-    if(actionName === 'SignTransactionEx2222' && hostsWhiteList.includes(host)){
-      console.log('--signTransactionEx')
-      // 发送消息给 content-script-tab
-      const tab = (
-        await chrome.tabs.query({
-          active: true,
-          windowType: 'normal',
-        })
-      ).find((tab) => tab.id === Number(sender.tab?.id))
-      if (tab?.id) {
-
-        // let sigList = []
-        // for (let i = 0; i < params.list.length; i++) {
-        //   sigList[i] = sign(wif, params.list[i])
-        // }
-
-        actions[actionName]
-        const signature = await signTransactionEx(msg.params.transaction.txHex,msg.params.transaction.inputInfos)
-        const response = {
-          nonce: msg.nonce,
-          channel: 'from-metaidwallet',
-          action: `respond-${actionName}`,
-          host: msg.host as string,
-          res: {
-            signature
-          },
-        }
-        chrome.tabs.sendMessage(tab.id, response)
-      }
-      return
     }
     const icon = sender.tab?.favIconUrl || msg.icon || ''
     const rawUrl = 'popup.html#authorize'
@@ -146,7 +114,7 @@ browser.runtime.onMessage.addListener(async (msg, sender, response) => {
           if (tab?.id) {
             const response = {
               nonce: msg.nonce,
-              channel: 'from-metaidwallet',
+              channel: 'from-metadiskwallet',
               action: `respond-${actionName}`,
               host: msg.host as string,
               res: {
@@ -173,7 +141,7 @@ browser.runtime.onMessage.addListener(async (msg, sender, response) => {
         if (tab?.id) {
           const response = {
             nonce: msg.nonce,
-            channel: 'from-metaidwallet',
+            channel: 'from-metadiskwallet',
             action: `respond-${actionName}`,
             host: msg.host as string,
             res,

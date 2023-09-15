@@ -19,7 +19,7 @@ async function createAction(actionName: string, actionType: ActionType = 'author
   window.postMessage(
     {
       nonce,
-      channel: 'to-metaidwallet',
+      channel: 'to-metadiskwallet',
       action,
       host,
       icon: '',
@@ -30,7 +30,7 @@ async function createAction(actionName: string, actionType: ActionType = 'author
   // 异步返回授权结果
   const subscribe = (callback: Function) => {
     const actionListener = (event: MessageEvent) => {
-      if (event.source !== window || event.data?.channel !== 'from-metaidwallet') {
+      if (event.source !== window || event.data?.channel !== 'from-metadiskwallet') {
         return
       }
       if (event.data?.nonce === nonce) {

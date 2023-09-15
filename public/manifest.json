@@ -1,6 +1,6 @@
 {
-  "name": "Metalet",
-  "description": "An MVC Crypto Wallet Extension",
+  "name": "Disklet",
+  "description": "An MVC Crypto Wallet Extension support for MetaDisk",
   "version": "1.7.3",
   "manifest_version": 3,
   "action": {

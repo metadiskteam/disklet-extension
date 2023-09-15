@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
-import MetaletLogoImg from '@/assets/images/metalet-logo.png?url'
+import MetaletLogoImg from '@/assets/images/disklet-logo.png?url'
 import { ref } from 'vue'
 import accountManager from '@/lib/account'
 
@@ -24,8 +24,9 @@ accountManager.all().then((accounts: any) => {
       </div>
 
       <div class="mt-4">
-        <h1 class="text-3xl font-extrabold">Metalet</h1>
+        <h1 class="text-3xl font-extrabold">Diskalet</h1>
         <p class="mt-4 text-lg text-gray-400">Wallet for MVC & Bitcoin</p>
+        <p class="mt-4 text-lg text-gray-400">Support Silent trading,Functionally similar to Metalet</p>
       </div>
     </div>
 

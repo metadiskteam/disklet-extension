@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router'
 import { RadioGroup, RadioGroupOption, Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
 import { ChevronRightIcon, TrashIcon } from '@heroicons/vue/24/solid'
 
-import MetaletLogoImg from '@/assets/images/metalet-logo.png?url'
+import MetaletLogoImg from '@/assets/images/disklet-logo.png?url'
 
 const router = useRouter()
 
@@ -85,7 +85,7 @@ const onSubmit = async () => {
 <template>
   <div class="mt-4">
     <div class="relative">
-      <img class="mx-auto h-20 w-20" :src="MetaletLogoImg" alt="metalet-logo" />
+      <img class="mx-auto h-20 w-20" :src="MetaletLogoImg" alt="disklet-logo" />
     </div>
     <div class="mt-8 space-y-2">
       <h3 class="text-center text-2xl">Import your wallet</h3>

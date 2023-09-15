@@ -99,6 +99,6 @@ const metalet: Metalet = {
   getSensibleFtBalance: getTokenBalance,
 }
 
-window.metaidwallet = metalet
+window.metadiskwallet = metalet
 
 export {}

@@ -5,8 +5,8 @@ module.exports = {
     extend: {
       colors: {
         'primary-teal': '#72F5F6',
-        'primary-blue': '#171AFF',
-        'btn-blue': '#1E2BFF',
+        'primary-blue': '#10B981',
+        'btn-blue': '#10B981',
       },
       borderRadius: {
         inherit: 'inherit',

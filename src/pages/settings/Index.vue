@@ -22,7 +22,7 @@ const toDiscord = () => {
 }
 
 const toGithub = () => {
-  window.open('https://github.com/mvc-labs/metalet-extension', '_blank')
+  window.open('https://github.com/metadiskteam/disklet-extension', '_blank')
 }
 
 const toTerms = () => {

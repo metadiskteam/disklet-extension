@@ -2,7 +2,7 @@ import browser from 'webextension-polyfill'
 
 export type MetaletParams = {
   nonce: string
-  channel: 'to-metaidwallet' | 'from-metaidwallet'
+  channel: 'to-metadiskwallet' | 'from-metadiskwallet'
   action: string
   host: string
   icon?: string
@@ -12,7 +12,7 @@ export type MetaletParams = {
 
 const listenToMetalet = () => {
   browser.runtime.onMessage.addListener((msg, sender, response) => {
-    if (msg.channel === 'from-metaidwallet') {
+    if (msg.channel === 'from-metadiskwallet') {
       window.postMessage(msg, '*')
     }
 
@@ -35,7 +35,7 @@ window.addEventListener(
   'message',
   (event) => {
     // We only accept messages from ourselves
-    if (event.source !== window || event.data?.channel !== 'to-metaidwallet') {
+    if (event.source !== window || event.data?.channel !== 'to-metadiskwallet') {
       return
     }
 
