@@ -1,31 +1,45 @@
+import { ComputedRef } from 'vue'
+import { metaletApi } from './request'
 import { useQuery } from '@tanstack/vue-query'
-import axios from 'axios'
-import { ComputedRef, Ref } from 'vue'
+import { SymbolUC, DEFAULT_SYMBOLS, BRC20_SYMBOLS } from '@/lib/asset-symbol'
 
-import { MVC_API_HOST } from '../data/hosts'
+type RawRates = Record<string, number>
 
-export type Rate = {
-  symbol: string
-  price: {
-    CNY: string
-    USD: string
-  }
-  remark: string
-  updateTime: number
+export const fetchExchangeRates = async (): Promise<RawRates> => {
+  return await metaletApi(`/coin/price`)
+    .get()
+    .then((res) => res.data.priceInfo)
 }
 
-export const fetchExchangeRates = async (): Promise<Rate[]> => {
-  const response = await axios.get(`${MVC_API_HOST}/metaid-base/v1/exchange/rates`)
-
-  return response.data.result.rates
+// Fetch BRC-20 coin tick price
+export const fetchTickExchangeRates = async (): Promise<RawRates> => {
+  return await metaletApi(`/coin/tick/price`)
+    .get()
+    .then((res) => res.data.priceInfo)
 }
 
-export const useExchangeRatesQuery = (symbol: string, options?: { enabled: ComputedRef<boolean> }) => {
-  const symbolLC = symbol.toLowerCase()
+export const doNothing = async (symbol: SymbolUC): Promise<RawRates> => ({
+  [symbol.toLowerCase()]: 0
+})
+
+export const useExchangeRatesQuery = (symbol: SymbolUC, options?: { enabled: ComputedRef<boolean> }) => {
   return useQuery({
     queryKey: ['exchangeRates', { symbol }],
-    queryFn: () => fetchExchangeRates(),
-    select: (rates: Rate[]) => rates.find((rate) => rate.symbol === symbolLC)?.price,
+    queryFn: () => {
+      if (BRC20_SYMBOLS.includes(symbol)) {
+        return fetchTickExchangeRates()
+      }
+
+      if (DEFAULT_SYMBOLS.includes(symbol)) {
+        return fetchExchangeRates()
+      }
+
+      return doNothing(symbol)
+    },
+    select: (rates: RawRates) => {
+      const rate = rates[symbol.toLowerCase()]
+      return { symbol, price: rate }
+    },
     ...options,
   })
 }

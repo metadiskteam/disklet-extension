@@ -1,13 +1,14 @@
+import { SymbolUC } from '@/lib/asset-symbol'
 import { useQuery } from '@tanstack/vue-query'
-import { metasvApi } from './request'
 import { ComputedRef, Ref } from 'vue'
 import tokens from '../data/tokens'
+import { mvcApi } from './request'
 
 export type Token = {
   codehash: string
   genesis: string
   name: string
-  symbol: string
+  symbol: SymbolUC
   decimal: number
   sensibleId: string
   utxoCount: number
@@ -18,7 +19,7 @@ export type Token = {
 }
 
 export const fetchTokens = async (address: string): Promise<Token[]> => {
-  const tokens: any = await metasvApi(`/contract/ft/address/${address}/balance`).get()
+  const tokens: any = await mvcApi(`/contract/ft/address/${address}/balance`).get()
 
   return tokens.map((token: any) => {
     // 将codeHash改为小写

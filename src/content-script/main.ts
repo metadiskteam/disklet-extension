@@ -16,9 +16,12 @@ import {
   eciesDecrypt,
   signMessage,
   verifySignature,
+  previewTransaction,
   signTransaction,
   signTransactionEx
 } from './actions'
+
+import { btcKeys, createAction, ActionType } from './actions'
 
 type Metalet = {
   connect: any
@@ -31,10 +34,11 @@ type Metalet = {
   getXPublicKey: any
   getBalance: any
   merge: any
+  previewTransaction: any
   signTransaction: any
   signTransactionEx: any
   signMessage: any
-  // verifySignature: any
+  verifySignature: any
   getUtxos: any
   //   getActivities: any
   transfer: any
@@ -57,6 +61,13 @@ type Metalet = {
     //   getActivities: any
   }
 
+  btc: {
+    getBalance: any
+    getAddress: any
+    getPublicKey: any
+    getUtxos: any
+  }
+
   // Deprecating
   requestAccount: any
   getAccount: any
@@ -65,7 +76,7 @@ type Metalet = {
   getSensibleFtBalance: any
 }
 
-const metalet: Metalet = {
+const metalet: any = {
   connect,
   isConnected,
   disconnect,
@@ -78,9 +89,11 @@ const metalet: Metalet = {
   getUtxos,
   transfer,
   merge,
+  previewTransaction,
   signTransaction,
   signTransactionEx,
   signMessage,
+  verifySignature,
 
   eciesEncrypt,
   eciesDecrypt,
@@ -91,6 +104,15 @@ const metalet: Metalet = {
   },
   nft: {},
 
+  btc: {},
+
+  // btc: {
+  //   getBalance: () => {},
+  //   getAddress: () => {},
+  //   getPublicKey: () => {},
+  //   getUtxos: () => {},
+  // },
+
   // Deprecating
   requestAccount: connect,
   getAccount: connect,
@@ -99,6 +121,15 @@ const metalet: Metalet = {
   getSensibleFtBalance: getTokenBalance,
 }
 
+Object.keys(btcKeys).forEach((type) => {
+  const actionType = type as ActionType
+  btcKeys[actionType].forEach((item) => {
+    metalet['btc'][item.name] = async (params?: any) => {
+      return await createAction(item.action, actionType, params)
+    }
+  })
+})
+
+window.metaidwallet = metalet
 window.metadiskwallet = metalet
 
-export {}

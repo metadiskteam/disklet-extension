@@ -1,19 +1,14 @@
 import * as VueRouter from 'vue-router'
 import Wallet from './pages/wallet/Index.vue'
-import WalletReceive from './pages/wallet/Receive.vue'
-import WalletSend from './pages/wallet/Send.vue'
-import WalletSendToken from './pages/wallet/SendToken.vue'
-import WalletImport from './pages/wallet/Import.vue'
-import Tokens from './pages/tokens/Index.vue'
-import NftCollections from './pages/nfts/Index.vue'
-import NftCollection from './pages/nfts/Collection.vue'
-import Settings from './pages/settings/Index.vue'
 import { getStorage } from './lib/storage'
-import accountManager, { getCurrentAccount } from './lib/account'
+import accountManager, { Account, getAccounts, getCurrentAccount, getLegacyAccounts } from './lib/account'
 
 const routes = [
   { path: '/', redirect: '/wallet' },
-  // { path: '/', redirect: '/collections' },
+  {
+    path: '/dev',
+    component: () => import('./pages/Dev.vue'),
+  },
   {
     path: '/welcome',
     component: () => import('./pages/welcome/Index.vue'),
@@ -87,7 +82,7 @@ const routes = [
   },
   {
     path: '/wallet/receive',
-    component: WalletReceive,
+    component: () => import('./pages/wallet/Receive.vue'),
     meta: {
       secondaryHeader: true,
       headerTitle: 'Receive',
@@ -96,7 +91,7 @@ const routes = [
   },
   {
     path: '/wallet/send',
-    component: WalletSend,
+    component: () => import('./pages/wallet/Send.vue'),
     meta: {
       secondaryHeader: true,
       headerTitle: 'Send',
@@ -106,7 +101,7 @@ const routes = [
 
   {
     path: '/wallet/send-token/:symbol/:genesis',
-    component: WalletSendToken,
+    component: () => import('./pages/wallet/SendToken.vue'),
     name: 'send-token',
     meta: {
       secondaryHeader: true,
@@ -135,7 +130,7 @@ const routes = [
   },
   {
     path: '/wallet/import',
-    component: WalletImport,
+    component: () => import('./pages/wallet/Import.vue'),
     meta: {
       noFooter: true,
       secondaryHeader: true,
@@ -147,6 +142,7 @@ const routes = [
     path: '/wallet/assets/:symbol',
     component: () => import('./pages/wallet/Asset.vue'),
     name: 'asset',
+    props: true,
     meta: {
       secondaryHeader: true,
       headerTitle: 'Asset',
@@ -165,13 +161,13 @@ const routes = [
 
   {
     path: '/collections/:codehash/:genesis',
-    component: NftCollection,
+    component: () => import('./pages/nfts/Collection.vue'),
     meta: {
       secondaryHeader: true,
       headerTitle: 'NFT Collection',
     },
   },
-  { path: '/collections', component: NftCollections, name: 'collections' },
+  { path: '/collections', component: () => import('./pages/nfts/Index.vue'), name: 'collections' },
   {
     path: '/nfts/transfer-nft/:codehash/:genesis/:tokenIndex',
     component: () => import('./pages/nfts/Transfer.vue'),
@@ -201,9 +197,9 @@ const routes = [
     },
   },
 
-  { path: '/tokens', component: Tokens },
+  { path: '/tokens', component: () => import('./pages/tokens/Index.vue') },
 
-  { path: '/settings', component: Settings },
+  { path: '/settings', component: () => import('./pages/settings/Index.vue') },
   {
     path: '/accounts',
     component: () => import('./pages/accounts/Index.vue'),
@@ -220,6 +216,16 @@ const routes = [
     meta: {
       secondaryHeader: true,
       headerTitle: 'Current Account',
+      noFooter: true,
+    },
+  },
+
+  {
+    path: '/settings/address-type',
+    component: () => import('./pages/settings/AddressType.vue'),
+    meta: {
+      secondaryHeader: true,
+      headerTitle: 'BTC Address Type',
       noFooter: true,
     },
   },
@@ -243,13 +249,15 @@ router.beforeEach(async (to, from) => {
 // 检查账号状态；如果没有当前账号，跳转到账号页面
 router.beforeEach(async (to, from) => {
   // 如果是老用户（sync存储中有助记词），且该账号在localStorage中不存在，则说明需要迁移，跳转至新版本迁移页面
-  const oldRecord = await chrome.storage.sync.get('currentAccount')
-  if (oldRecord && oldRecord.currentAccount) {
-    const mneStr = oldRecord.currentAccount.mnemonicStr
+  const v0Record = await chrome.storage.sync.get('currentAccount')
+  const v1Records = await getLegacyAccounts()
+  if (v0Record && v0Record.currentAccount && v1Records.length === 0) {
+    const mneStr = v0Record.currentAccount.mnemonicStr
 
     // 比照查看有无该助记词的账号
-    const accounts: any[] = await accountManager.all().then((res) => Object.values(res))
-    const hasAccount = accounts.some((account) => account.mnemonic === mneStr)
+    const accounts = await getAccounts()
+    const accountsArr = Array.from(accounts.values())
+    const hasAccount = accountsArr.some((account) => account.mnemonic === mneStr)
 
     if (!hasAccount && to.path !== '/migrate') {
       return '/migrate'

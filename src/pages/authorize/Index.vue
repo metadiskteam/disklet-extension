@@ -3,7 +3,7 @@ import { useRoute } from 'vue-router'
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/outline'
 import { computed, ref } from 'vue'
 
-import { sendMsg, toTx } from '@/lib/helpers'
+import { toTx } from '@/lib/helpers'
 import MetaletLogoImg from '@/assets/images/metalet-logo.png?url'
 import actions from '@/data/authorize-actions'
 import TransferToken from './TransferToken.vue'
@@ -14,6 +14,7 @@ import SwitchNetwork from './SwitchNetwork.vue'
 import EciesEncrypt from './EciesEncrypt.vue'
 import EciesDecrypt from './EciesDecrypt.vue'
 import SignTransaction from './SignTransaction.vue'
+import SignTransactions from './SignTransactions.vue'
 import SignMessage from './SignMessage.vue'
 import Merge from './Merge.vue'
 import { getBrowserHost } from '@/lib/host'
@@ -178,6 +179,7 @@ const cancelAction = async () => {
       <EciesEncrypt v-if="actionName === 'EciesEncrypt'" :params="params" />
       <EciesDecrypt v-if="actionName === 'EciesDecrypt'" :params="params" />
       <SignTransaction v-if="actionName === 'SignTransaction'" :params="params" />
+      <SignTransactions v-if="actionName === 'SignTransactions'" :params="params" />
       <SignMessage v-if="actionName === 'SignMessage'" :params="params" />
     </div>
 

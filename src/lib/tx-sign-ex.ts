@@ -13,7 +13,7 @@ export async function signTransactionEx (txHex:string, inputInfos:any[]): Promis
   for(let i=0;i<inputInfos.length;i++){
       let v = inputInfos[i]
       console.log('----signTransaction----01',i, v)
-      let privateKey = null;
+      let privateKey;
       if(v.address){
           let inputAddress = null
           try{
@@ -26,15 +26,18 @@ export async function signTransactionEx (txHex:string, inputInfos:any[]): Promis
               if(v.address!==(mainAddress)){
                   throw new Error("unsupported address in inputInfos")
               }else
-                privateKey = await getPrivateKey()
+                privateKey = await getPrivateKey('mvc')
           }else  {
               //传了address却不是地址，则视为path去衍生
-              privateKey = await getPrivateKey({path:v.address})
+              privateKey = await getPrivateKey('mvc',v.address)
           }
       }else
         privateKey = await getPrivateKey()
 
       console.log('----signTransaction----04',privateKey)
+
+      privateKey = new mvc.PrivateKey(privateKey)
+      
       let sighash = mvc.Transaction.Sighash.sighash(
           tx,
           v.sighashType,

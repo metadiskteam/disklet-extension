@@ -1,39 +1,58 @@
 <script lang="ts" setup>
 import { Ref, ref, computed } from 'vue'
+import { InboxIcon } from '@heroicons/vue/24/solid'
 
 import { getAddress } from '@/lib/account'
 import { useActivitiesQuery } from '@/queries/activities'
-import ActivityItem from './ActivityItem.vue'
 import type { Token } from '@/queries/tokens'
-import { InboxIcon } from '@heroicons/vue/24/solid'
+
+import ActivityItem from './ActivityItem.vue'
+
+const props = defineProps<{
+  asset?: Token | any
+  exchangeRate?: number
+}>()
 
 const address: Ref<string> = ref('')
-getAddress().then((add) => {
+getAddress(props.asset.chain).then((add) => {
   address.value = add!
 })
 const enabled = computed(() => !!address.value)
 
-const props = defineProps<{
-  asset?: Token | any
-}>()
-
-const { isLoading, isError, data, error } = useActivitiesQuery(address, { asset: props.asset }, { enabled })
+const {
+  isLoading,
+  isError,
+  data: activities,
+  error,
+} = useActivitiesQuery(
+  address,
+  props.asset.isNative
+    ? {
+        type: 'native',
+        asset: props.asset,
+      }
+    : {
+        type: 'token',
+        token: props.asset,
+      },
+  { enabled }
+)
 </script>
 
 <template>
   <div class="text-sm">
     <!-- label -->
-    <h4 class="py-2 uppercase text-gray-500">Activities</h4>
+    <h4 class="py-2 uppercase" style="color: #303133">Transaction History</h4>
 
     <!-- list -->
     <div v-if="isLoading" class="py-4 text-center">Loading...</div>
 
     <div v-else-if="isError" class="py-4 text-center">Error: {{ error }}</div>
 
-    <div v-else-if="data" class="space-y-2">
+    <div v-else-if="activities" class="space-y-2">
       <ActivityItem
-        v-if="data.length"
-        v-for="activity in data"
+        v-if="activities.length"
+        v-for="activity in activities"
         :key="activity.txid"
         :activity="activity"
         :asset="asset"

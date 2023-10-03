@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import { sendMsg } from '@/lib/helpers'
 import MetaletLogoImg from '@/assets/images/metalet-logo.png?url'
-import accountManager from '@/lib/account'
+import accountManager, { getAccounts, getLegacyAccounts } from '@/lib/account'
 import type { Account } from '@/lib/account'
 import { mvc } from 'meta-contract'
 import { setNetwork } from '@/lib/network'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { deriveAllAddresses, type AddressType } from '@/lib/bip32-deriver'
 
 const router = useRouter()
 
@@ -14,12 +14,14 @@ const error = ref('')
 const importWallet = async () => {
   // 如果是老用户（sync存储中有助记词），且该账号在localStorage中不存在，则说明需要迁移，跳转至新版本迁移页面
   const oldRecord = await chrome.storage.sync.get('currentAccount')
-  if (oldRecord && oldRecord.currentAccount && oldRecord.currentAccount.mnemonicStr) {
+  const v1Records = await getLegacyAccounts()
+  if (oldRecord && oldRecord.currentAccount && oldRecord.currentAccount.mnemonicStr && !v1Records.length) {
     const mneStr = oldRecord.currentAccount.mnemonicStr
 
     // 比照查看有无该助记词的账号
-    const accounts: Account[] = await accountManager.all().then((res) => Object.values(res))
-    const hasAccount = accounts.some((account) => account.mnemonic === mneStr)
+    const accounts = await getAccounts()
+    const accountsArr = Array.from(accounts.values())
+    const hasAccount = accountsArr.some((account) => account.mnemonic === mneStr)
 
     if (!hasAccount) {
       // 迁移过程
@@ -47,23 +49,31 @@ const importWallet = async () => {
           throw new Error('Cannot find the path of the original account')
         }
 
-        const mainnetHdpk = mneObj.toHDPrivateKey('', 'mainnet')
-        const mainnetPrivateKey = mainnetHdpk.deriveChild(`m/44'/${usingPath}'/0'/0/0`).privateKey
-        const mainnetAddress = mainnetPrivateKey.toAddress('mainnet').toString()
+        const fullPath = `m/44'/${usingPath}'/0'/0/0`
+        const btcPath = fullPath
 
-        const testnetHdpk = mneObj.toHDPrivateKey('', 'testnet')
-        const testnetPrivateKey = testnetHdpk.deriveChild(`m/44'/${usingPath}'/0'/0/0`).privateKey
-        const testnetAddress = testnetPrivateKey.toAddress('testnet').toString()
+        const allAddresses = deriveAllAddresses({
+          mnemonic: mnemonicStr,
+          btcPath,
+          mvcPath: fullPath,
+        })
 
-        // 保存账号信息：助记词、私钥、地址；以地址为key，value为对象
+        // construct new account object
         const account = {
           mnemonic: mnemonicStr,
-          path: usingPath,
-          mainnetPrivateKey: mainnetPrivateKey.toString(),
-          mainnetAddress,
-          testnetPrivateKey: testnetPrivateKey.toString(),
-          testnetAddress,
-          assetsDisplay: ['SPACE'],
+          assetsDisplay: ['SPACE', 'BTC'],
+          mvc: {
+            path: fullPath,
+            addressType: 'P2PKH' as AddressType,
+            mainnetAddress: allAddresses.mvcMainnetAddress,
+            testnetAddress: allAddresses.mvcTestnetAddress,
+          },
+          btc: {
+            path: btcPath,
+            addressType: 'P2PKH' as AddressType,
+            mainnetAddress: allAddresses.btcMainnetAddress,
+            testnetAddress: allAddresses.btcTestnetAddress,
+          },
         }
 
         await accountManager.add(account)
@@ -91,7 +101,7 @@ const importWallet = async () => {
       <div class="mt-4">
         <div class="flex items-end justify-center gap-x-2">
           <h1 class="text-3xl font-extrabold leading-none">Metalet</h1>
-          <span class="text-base font-bold leading-none text-amber-500">v1.5</span>
+          <span class="text-base font-bold leading-none text-amber-500">v2.0</span>
         </div>
 
         <p class="mt-2 text-gray-500">Welcome Back!</p>

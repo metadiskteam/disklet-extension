@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import { Ref, computed, ref } from 'vue'
 import { mvc } from 'meta-contract'
-import LockIcon from '@/assets/icons/lock.svg?component'
 import { EyeIcon } from '@heroicons/vue/24/solid'
 import { useRouter } from 'vue-router'
+
+import LockIcon from '@/assets/icons/lock.svg?component'
 import { addAccount } from '@/lib/account'
-import passwordManager from '@/lib/password'
+import { deriveAllAddresses, type AddressType } from '@/lib/bip32-deriver'
 
 const router = useRouter()
 
@@ -26,36 +27,45 @@ const isCover = ref(true)
 const saveAccount = async (backup: boolean) => {
   const mnemonicStr = words.value.join(' ')
   try {
-    const mneObj = mvc.Mnemonic.fromString(mnemonicStr)
-    const mainnetHdpk = mneObj.toHDPrivateKey('', 'mainnet')
-    const mainnetPrivateKey = mainnetHdpk.deriveChild(`m/44'/10001'/0'/0/0`).privateKey
-    const mainnetAddress = mainnetPrivateKey.toAddress('mainnet').toString()
+    const fullPath = `m/44'/10001'/0'/0/0`
+    const btcPath = fullPath
 
-    const testnetHdpk = mneObj.toHDPrivateKey('', 'testnet')
-    const testnetPrivateKey = testnetHdpk.deriveChild(`m/44'/10001'/0'/0/0`).privateKey
-    const testnetAddress = testnetPrivateKey.toAddress('testnet').toString()
+    const allAddresses = deriveAllAddresses({
+      mnemonic: mnemonicStr,
+      btcPath,
+      mvcPath: fullPath,
+    })
 
-    // 保存账号信息：助记词、私钥、地址；以地址为key，value为对象
+    // construct new account object
     const account = {
       mnemonic: mnemonicStr,
-      path: '10001',
-      mainnetPrivateKey: mainnetPrivateKey.toString(),
-      mainnetAddress,
-      testnetPrivateKey: testnetPrivateKey.toString(),
-      testnetAddress,
-      assetsDisplay: ['SPACE'],
+      assetsDisplay: ['SPACE', 'BTC'],
+      mvc: {
+        path: fullPath,
+        addressType: 'P2PKH' as AddressType,
+        mainnetAddress: allAddresses.mvcMainnetAddress,
+        testnetAddress: allAddresses.mvcTestnetAddress,
+      },
+      btc: {
+        path: btcPath,
+        addressType: 'P2PKH' as AddressType,
+        mainnetAddress: allAddresses.btcMainnetAddress,
+        testnetAddress: allAddresses.btcTestnetAddress,
+      },
     }
-
     await addAccount(account)
 
+    console.log('addAccount')
+    console.log('backup', backup)
+
     if (!backup) {
+      console.log('goto successs')
       router.push('/wallet/create-success')
     } else {
       router.push('/wallet/check-backup')
     }
   } catch (e) {
     console.log(e)
-    // error.value = 'Failed to import your wallet'
   }
 }
 </script>

@@ -1,32 +1,35 @@
 <script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router'
-import { computed, ref, Ref, inject, onMounted } from 'vue'
-import { getNetwork } from './lib/network'
+import { useRoute } from 'vue-router'
+import { computed, Ref, inject } from 'vue'
 import { API_NET, API_TARGET, Wallet } from 'meta-contract'
+
+import { getNetwork } from './lib/network'
+import { getCurrentAccount, getPrivateKey } from './lib/account'
+import { FEEB } from './data/config'
+import BgHueImg from './assets/images/bg-hue.png?url'
 
 import TheFooter from './components/the-footer/Index.vue'
 import TheHeader from './components/headers/TheHeader.vue'
 import SecondaryHeader from './components/headers/SecondaryHeader.vue'
-import accountManager, { getCurrentAccount } from './lib/account'
-import type { Account } from './lib/account'
-import { FEEB } from './data/config'
-import BgHueImg from './assets/images/bg-hue.png?url'
 
-const router = useRouter()
 const route = useRoute()
 
-// 从storage读取助记词
-const network = ref('testnet')
-getNetwork().then((net) => {
-  network.value = net
+// setup vue-query
+import { useQueryClient } from '@tanstack/vue-query'
+const queryClient = useQueryClient()
+queryClient.setDefaultOptions({
+  queries: {
+    staleTime: 1000 * 30, // 30 seconds
+  },
 })
+
 const wallet: Ref<any> = inject('wallet')!
 getCurrentAccount().then(async (account) => {
   if (account) {
-    const wif =
-      network.value === 'mainnet' ? account.mainnetPrivateKey.toString() : account.testnetPrivateKey.toString()
+    const network = await getNetwork()
+    const wif = await getPrivateKey()
 
-    wallet.value = new Wallet(wif, network.value as API_NET, FEEB, API_TARGET.MVC)
+    wallet.value = new Wallet(wif, network as API_NET, FEEB, API_TARGET.MVC)
   }
 })
 
@@ -42,10 +45,10 @@ const secondaryHeaderTitle = computed(() => {
 <template>
   <div
     id="app"
-    class="ext-app relative flex h-150 w-90 items-center justify-center overflow-y-auto sm:h-screen sm:w-screen sm:bg-gray-200/10"
+    class="ext-app relative flex h-150 w-90 items-center justify-center overflow-y-auto font-sans xs:h-screen xs:w-screen xs:bg-gray-200/10"
   >
     <div
-      class="ext-app flex h-full w-full flex-col overflow-y-auto sm:relative sm:aspect-[1/2] sm:h-3/4 sm:w-auto sm:min-w-[25rem] sm:rounded-lg sm:border sm:border-gray-100 sm:bg-white sm:shadow-lg"
+      class="ext-app flex h-full w-full flex-col overflow-y-auto xs:relative xs:aspect-[1/2] xs:h-3/4 xs:w-auto xs:min-w-[25rem] xs:rounded-lg xs:border xs:border-gray-100 xs:bg-white xs:shadow-lg"
     >
       <!-- Header -->
       <SecondaryHeader v-if="route.meta.secondaryHeader">
@@ -58,7 +61,7 @@ const secondaryHeaderTitle = computed(() => {
 
       <!-- bg -->
       <div
-        class="bg-hue fixed left-0 top-0 isolate z-[-1] hidden h-1/2 w-full select-none bg-cover bg-center bg-no-repeat sm:block"
+        class="bg-hue fixed left-0 top-0 isolate z-[-1] hidden h-1/2 w-full select-none bg-cover bg-center bg-no-repeat xs:block"
       >
         <img class="z-[-1] h-full w-full select-none opacity-100" :src="BgHueImg" alt="bg-hue" />
       </div>
@@ -73,23 +76,6 @@ const secondaryHeaderTitle = computed(() => {
 </template>
 
 <style scoped lang="css">
-/* #app:after {
-  background: linear-gradient(transparent, #3b82f6, transparent);
-  height: 140px;
-  width: 3px;
-  content: '';
-  position: absolute;
-  left: -1px;
-  top: 70%;
-  opacity: 0;
-  transition: top 600ms ease, opacity 600ms ease;
-}
-
-#app:hover:after {
-  opacity: 1;
-  top: 25%;
-} */
-
 .ext-app::-webkit-scrollbar {
   @apply h-1.5 w-1.5;
 }

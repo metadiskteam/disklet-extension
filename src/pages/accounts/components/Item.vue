@@ -1,11 +1,16 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
-import accountManager from '@/lib/account'
-import type { Account } from '@/lib/account'
-import { network } from '@/lib/network'
+import { Ref, computed, inject, ref } from 'vue'
 import { ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, PencilSquareIcon } from '@heroicons/vue/24/solid'
 import { useRouter } from 'vue-router'
+import { API_NET, API_TARGET, Wallet } from 'meta-contract'
+import { useQueryClient } from '@tanstack/vue-query'
+
+import accountManager, { type Account, getPrivateKey } from '@/lib/account'
+import { getNetwork, network } from '@/lib/network'
+import { shortestAddress } from '@/lib/formatters'
+
 import EditName from './EditName.vue'
+import { FEEB } from '@/data/config'
 
 const router = useRouter()
 
@@ -15,22 +20,24 @@ const props = defineProps<{
   showNetwork?: boolean
 }>()
 
-const isCopied = ref(false)
-const copyAddress = () => {
-  navigator.clipboard.writeText(address.value)
-  isCopied.value = true
+const mvcAddress = ref(
+  network.value === 'mainnet' ? props.account.mvc.mainnetAddress : props.account.mvc.testnetAddress
+)
+const btcAddress = ref(
+  network.value === 'mainnet' ? props.account.btc.mainnetAddress : props.account.btc.testnetAddress
+)
+
+const isBTCCopied = ref(false)
+const isMVCCopied = ref(false)
+
+const copyBTCAddress = () => {
+  navigator.clipboard.writeText(btcAddress.value)
+  isBTCCopied.value = true
 }
 
-// 根据当前网络环境获取地址
-const address = computed(() => {
-  if (network.value === 'testnet') {
-    return props.account.testnetAddress
-  }
-  return props.account.mainnetAddress
-})
-
-const prettifyAddress = (address: string) => {
-  return `${address.slice(0, 6)}...${address.slice(-6)}`
+const copyMVCAddress = () => {
+  navigator.clipboard.writeText(mvcAddress.value)
+  isMVCCopied.value = true
 }
 
 const randomColor = (key: string) => {
@@ -49,10 +56,19 @@ const randomColor = (key: string) => {
   return colors[index]
 }
 
+const queryClient = useQueryClient()
+const wallet = inject<Ref<Wallet>>('wallet')!
 const connect = async () => {
   await accountManager.connect(props.account.id)
 
-  // 返回首页
+  // invalidate all queries
+  await queryClient.invalidateQueries()
+
+  // update injected wallet
+  const network = await getNetwork()
+  const wif = await getPrivateKey()
+  wallet.value = new Wallet(wif, network as API_NET, FEEB, API_TARGET.MVC)
+
   router.push('/wallet')
 }
 
@@ -68,9 +84,9 @@ const openEditNameModal = ref(false)
     <!-- edit name modal -->
     <EditName v-model:open="openEditNameModal" :account="props.account" />
 
-    <div class="flex items-center justify-start gap-x-2 py-4" :key="account.id">
+    <div class="flex items-center justify-start gap-x-2 py-4" :key="props.account.id">
       <!-- avatar -->
-      <div :class="['h-12 w-12 rounded-full bg-gradient-to-br', randomColor(account.mainnetAddress)]"></div>
+      <div :class="['h-12 w-12 rounded-full bg-gradient-to-br', randomColor(props.account.mvc.mainnetAddress)]"></div>
 
       <!-- info -->
       <div class="group flex flex-col">
@@ -92,10 +108,26 @@ const openEditNameModal = ref(false)
           >
         </div>
 
+        <div class="mt-1 flex items-center gap-x-1">
+          <div class="flex items-center gap-2">
+            <div class="text-xs text-gray-400">MVC Address</div>
+            <div class="text-sm text-gray-500">{{ shortestAddress(mvcAddress) }}</div>
+          </div>
+
+          <ClipboardDocumentCheckIcon class="h-4 w-4 text-blue-500" v-if="isMVCCopied" />
+          <button class="text-gray-400 hover:text-gray-500" @click.stop="copyMVCAddress" type="button" v-else>
+            <ClipboardDocumentListIcon class="h-4 w-4" />
+          </button>
+        </div>
+
         <div class="flex items-center gap-x-1">
-          <div class="text-sm text-gray-500">{{ prettifyAddress(address) }}</div>
-          <ClipboardDocumentCheckIcon class="h-4 w-4 text-blue-500" v-if="isCopied" />
-          <button class="text-gray-400 hover:text-gray-500" @click.stop="copyAddress" type="button" v-else>
+          <div class="flex items-center gap-2">
+            <div class="text-xs text-gray-400">BTC Address</div>
+            <div class="text-sm text-gray-500">{{ shortestAddress(btcAddress) }}</div>
+          </div>
+
+          <ClipboardDocumentCheckIcon class="h-4 w-4 text-blue-500" v-if="isBTCCopied" />
+          <button class="text-gray-400 hover:text-gray-500" @click.stop="copyBTCAddress" type="button" v-else>
             <ClipboardDocumentListIcon class="h-4 w-4" />
           </button>
         </div>

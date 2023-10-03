@@ -2,7 +2,7 @@
 import { ref, computed, Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import assetsList from '@/data/assets'
+import { MVCAssets } from '@/data/assets'
 import AssetItem from './components/AssetItem.vue'
 import { getAssetsDisplay } from '@/lib/assets'
 
@@ -12,7 +12,7 @@ const props = defineProps<{
 
 const router = useRouter()
 
-const assets = ref(assetsList)
+const assets = ref(MVCAssets)
 const assetsDisplay: Ref<string[]> = ref([])
 getAssetsDisplay().then((display) => {
   assetsDisplay.value = display
@@ -34,7 +34,7 @@ function selectAsset(asset: any) {
 </script>
 
 <template>
-  <div class="divide-y divide-gray-100 text-black">
+  <div class="space-y-2 divide-y divide-gray-100 text-black">
     <AssetItem v-for="asset in displayingAssets" :key="asset.symbol" :asset="asset" @click="selectAsset(asset)" />
   </div>
 </template>

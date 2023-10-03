@@ -10,6 +10,10 @@ import * as SignTransactionEx from '../lib/actions/sign-transaction-ex'
 import * as SignMessage from '../lib/actions/sign-message'
 import * as Merge from '../lib/actions/merge'
 
+// BTC
+import * as SignBTCPsbt from '../lib/actions/btc/sign-psbt'
+import * as SignBTCMessage from '../lib/actions/btc/sign-message'
+
 function doNothing() {}
 
 type AuthorizeAction = {
@@ -105,12 +109,29 @@ export default {
     estimate: doNothing,
     closeAfterProcess: true,
   },
-
   SignMessage: {
     name: 'Sign Message',
     title: 'Sign Message',
     description: ['Sign a message with ECDSA algorithm'],
     process: SignMessage.process,
+    estimate: doNothing,
+    closeAfterProcess: true,
+  },
+
+  // BTC
+  SignBTCMessage: {
+    name: 'Sign BTC Message',
+    title: 'Sign BTC Message',
+    description: ['Sign BTC Message'],
+    process: SignBTCMessage.process,
+    estimate: doNothing,
+    closeAfterProcess: true,
+  },
+  SignBTCPsbt: {
+    name: 'Sign BTC Psbt',
+    title: 'Sign BTC Psbt',
+    description: ['Sign BTC Psbt'],
+    process: SignBTCPsbt.process,
     estimate: doNothing,
     closeAfterProcess: true,
   },

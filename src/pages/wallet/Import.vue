@@ -1,12 +1,29 @@
 <script lang="ts" setup>
 import { ref, computed, Ref, watch } from 'vue'
-import { mvc } from 'meta-contract'
-import { addAccount } from '@/lib/account'
 import { useRouter } from 'vue-router'
-import { RadioGroup, RadioGroupOption, Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
-import { ChevronRightIcon, TrashIcon } from '@heroicons/vue/24/solid'
+import {
+  RadioGroup,
+  RadioGroupOption,
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
+  Listbox,
+  ListboxButton,
+  ListboxOptions,
+  ListboxOption,
+  Switch,
+  SwitchGroup,
+  SwitchLabel,
+} from '@headlessui/vue'
+import { TrashIcon, CheckIcon, ChevronUpDownIcon, ChevronRightIcon } from '@heroicons/vue/24/solid'
 
 import MetaletLogoImg from '@/assets/images/disklet-logo.png?url'
+import { addAccount } from '@/lib/account'
+import { deriveAllAddresses, scripts, type AddressType } from '@/lib/bip32-deriver'
+
+// Remove the last one
+const selectableScripts = scripts.slice(0, -1)
+const selectedScript = ref(selectableScripts[0])
 
 const router = useRouter()
 
@@ -37,7 +54,9 @@ const onPasteWords = (e: ClipboardEvent) => {
   }
 }
 
-const path = ref('10001')
+const pathDepth = ref('10001')
+
+const useSamePath = ref(true)
 
 const finished = computed(() => words.value.every((word) => word.length > 0))
 
@@ -50,31 +69,37 @@ const onSubmit = async () => {
 
   // 转化成私钥
   try {
-    const mneObj = mvc.Mnemonic.fromString(mnemonicStr)
-    // const hdpk = mneObj.toHDPrivateKey('', network)
-    const mainnetHdpk = mneObj.toHDPrivateKey('', 'mainnet')
-    const mainnetPrivateKey = mainnetHdpk.deriveChild(`m/44'/${path.value}'/0'/0/0`).privateKey
-    const mainnetAddress = mainnetPrivateKey.toAddress('mainnet').toString()
+    const fullPath = `m/44'/${pathDepth.value}'/0'/0/0`
+    const btcPath = useSamePath.value ? fullPath : selectedScript.value.path
 
-    const testnetHdpk = mneObj.toHDPrivateKey('', 'testnet')
-    const testnetPrivateKey = testnetHdpk.deriveChild(`m/44'/${path.value}'/0'/0/0`).privateKey
-    const testnetAddress = testnetPrivateKey.toAddress('testnet').toString()
+    const allAddresses = deriveAllAddresses({
+      mnemonic: mnemonicStr,
+      btcPath,
+      mvcPath: fullPath,
+    })
 
-    // 保存账号信息：助记词、私钥、地址；以地址为key，value为对象
+    // construct new account object
     const account = {
       mnemonic: mnemonicStr,
-      path: path.value,
-      mainnetPrivateKey: mainnetPrivateKey.toString(),
-      mainnetAddress,
-      testnetPrivateKey: testnetPrivateKey.toString(),
-      testnetAddress,
-      assetsDisplay: ['SPACE'],
+      assetsDisplay: ['SPACE', 'BTC'],
+      mvc: {
+        path: fullPath,
+        addressType: 'P2PKH' as AddressType,
+        mainnetAddress: allAddresses.mvcMainnetAddress,
+        testnetAddress: allAddresses.mvcTestnetAddress,
+      },
+      btc: {
+        path: btcPath,
+        addressType: useSamePath.value ? 'P2PKH' : selectedScript.value.addressType,
+        mainnetAddress: allAddresses.btcMainnetAddress,
+        testnetAddress: allAddresses.btcTestnetAddress,
+      },
     }
 
     await addAccount(account)
 
     // 跳转到首页
-    router.push('/')
+    router.push('/wallet')
   } catch (e) {
     console.log(e)
     error.value = 'Failed to import your wallet'
@@ -139,7 +164,7 @@ const onSubmit = async () => {
     <div class="mt-6">
       <Disclosure v-slot="{ open }">
         <DisclosureButton class="flex items-center gap-1">
-          <span class="text-xs text-gray-500">PATH</span>
+          <span class="text-xs text-gray-500">MVC Path</span>
           <ChevronRightIcon :class="['h-4 w-4 text-gray-400 transition duration-200', open && 'rotate-90 transform']" />
         </DisclosureButton>
 
@@ -163,13 +188,84 @@ const onSubmit = async () => {
 
       <div class="mt-2 text-sm tracking-wide text-black">
         <span class="">m/44'/</span>
-        <input type="text" placeholder="10001" class="pit-input mx-2 w-16" v-model="path" />
+        <input type="text" placeholder="10001" class="pit-input mx-2 w-16" v-model="pathDepth" />
         <span class="">'/0'</span>
       </div>
     </div>
 
+    <div class="mt-8">
+      <span class="text-xs text-gray-500">BTC Path</span>
+
+      <SwitchGroup as="div" class="flex items-center mt-2">
+        <Switch
+          v-model="useSamePath"
+          class="group relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded-full"
+        >
+          <span class="sr-only">Use same path as MVC</span>
+          <span aria-hidden="true" class="pointer-events-none absolute h-full w-full rounded-md bg-white"></span>
+          <span
+            aria-hidden="true"
+            :class="[
+              useSamePath ? 'bg-btn-blue' : 'bg-gray-200',
+              'pointer-events-none absolute mx-auto h-4 w-9 rounded-full transition-colors duration-200 ease-in-out',
+            ]"
+          ></span>
+          <span
+            aria-hidden="true"
+            :class="[
+              useSamePath ? 'translate-x-5' : 'translate-x-0',
+              'pointer-events-none absolute left-0 inline-block h-5 w-5 transform rounded-full border border-gray-200 bg-white shadow ring-0 transition-transform duration-200 ease-in-out',
+            ]"
+          ></span>
+        </Switch>
+
+        <SwitchLabel as="span" class="ml-3 text-sm text-gray-500"> Use the same path as MVC </SwitchLabel>
+      </SwitchGroup>
+
+      <Listbox v-model="selectedScript" v-if="!useSamePath">
+        <div class="relative mt-4">
+          <ListboxButton
+            class="relative w-full cursor-default rounded-lg bg-[#f5f5f5] py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+          >
+            <span class="block truncate">{{ selectedScript.path }}</span>
+            <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+              <ChevronUpDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
+            </span>
+          </ListboxButton>
+
+          <transition
+            leave-active-class="transition duration-100 ease-in"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+          >
+            <ListboxOptions
+              class="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-[#f5f5f5] py-2 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+            >
+              <ListboxOption
+                v-slot="{ selected }"
+                v-for="script in selectableScripts"
+                :key="script.name"
+                :value="script"
+                as="template"
+              >
+                <li :class="['text-gray-900', 'relative cursor-pointer select-none py-1 pl-3 pr-4']">
+                  <span :class="[selected ? 'font-medium' : 'font-normal', 'block truncate']">{{ script.path }}</span>
+                  <span
+                    v-if="selected"
+                    class="absolute inset-y-2 right-2 flex h-5 w-5 items-center justify-center rounded-md bg-[#1E2BFF] text-white"
+                  >
+                    <CheckIcon class="h-4 w-4" aria-hidden="true" />
+                  </span>
+                </li>
+              </ListboxOption>
+            </ListboxOptions>
+          </transition>
+        </div>
+      </Listbox>
+    </div>
+
     <!-- ok -->
-    <div class="flex items-center justify-center">
+    <div class="mt-32 flex items-center justify-center">
       <button
         class="main-btn-bg mt-8 grow rounded-md py-3 text-sm font-bold text-sky-50"
         :class="[!finished && 'muted']"
@@ -184,3 +280,4 @@ const onSubmit = async () => {
     <div class="mt-4 text-center text-sm text-red-500" v-if="error">{{ error }}</div>
   </div>
 </template>
+@/lib/bip32-deriver

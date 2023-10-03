@@ -1,6 +1,7 @@
 import { fetchTokens } from '@/queries/tokens'
-import { address, getCurrentAccount, setAccount } from './account'
+import { getCurrentAccount, setAccount, getAddress } from './account'
 import tokens from '@/data/tokens'
+import { ref, onMounted } from 'vue'
 
 export async function getAssetsDisplay() {
   const account = await getCurrentAccount()
@@ -49,11 +50,9 @@ export async function removeAssetsDisplay(asset: string) {
 }
 
 export async function getTokenBalance() {
-  const account = await getCurrentAccount()
-  if (!account) {
-    return null
-  }
-  const tokenBalance = await fetchTokens(address.value)
+  const address = await getAddress('mvc')
+
+  const tokenBalance = await fetchTokens(address)
 
   return tokenBalance
 }

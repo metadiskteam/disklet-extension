@@ -8,9 +8,13 @@ type Echo = {
   res: any
 }
 
-type ActionType = 'authorize' | 'query'
+export type ActionType = 'authorize' | 'query'
 
-async function createAction(actionName: string, actionType: ActionType = 'authorize', params?: any): Promise<any> {
+export async function createAction(
+  actionName: string,
+  actionType: ActionType = 'authorize',
+  params?: any
+): Promise<any> {
   const action = `${actionType}-${actionName}`
   // nonce为32位随机字符串
   const nonce = generateRandomString(16)
@@ -117,8 +121,15 @@ type SigningTransaction = {
   satoshis: number
   sigtype: number
 }
+
+export async function previewTransaction(params: { transaction: SigningTransaction }) {
+  return await createAction('PreviewTransaction', 'query', params)
+}
 export async function signTransaction(params: { transaction: SigningTransaction }) {
   return await createAction('SignTransaction', 'authorize', params)
+}
+export async function signTransactions(params: { transactions: SigningTransaction[] }) {
+  return await createAction('SignTransactions', 'authorize', params)
 }
 
 export async function signTransactionEx(params: { transaction: SigningTransaction }) {
@@ -153,4 +164,26 @@ export async function merge(params: any) {
 // tokens-related
 export async function getTokenBalance(params?: { genesis: string; codehash: string }) {
   return await createAction('GetTokenBalance', 'query', params)
+}
+
+export interface ActionItem {
+  name: string
+  action: string
+}
+
+export type Keys = {
+  [K in ActionType]: ActionItem[]
+}
+
+export const btcKeys: Keys = {
+  query: [
+    { name: 'getBalance', action: 'GetBTCBalance' },
+    { name: 'getAddress', action: 'GetBTCAddress' },
+    { name: 'getPublicKey', action: 'GetBTCPublicKey' },
+    { name: 'getUtxos', action: 'GetBTCUtxos' },
+  ],
+  authorize: [
+    { name: 'signPsbt', action: 'SignBTCPsbt' },
+    { name: 'signMessage', action: 'SignBTCMessage' },
+  ],
 }
