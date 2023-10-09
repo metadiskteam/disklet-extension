@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useRoute } from 'vue-router'
 
-import MetaletLogoImg from '@/assets/images/disklet-logo.png?url'
+import MetaletLogoImg from '@/assets/images/metalet-logo.png?url'
 import MetaletWordImg from '@/assets/images/disklet-word.svg?url'
 import AccountMenu from './AccountMenu.vue'
 import { VERSION } from '@/data/config'

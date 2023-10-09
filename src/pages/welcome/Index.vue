@@ -2,8 +2,8 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-import MetaletLogoImg from '@/assets/images/disklet-logo.png?url'
-import { currentAccount, getAccounts, getCurrentAccount, migrateV2, needsMigrationV2 } from '@/lib/account'
+import MetaletLogoImg from '@/assets/images/metalet-logo.png?url'
+import { getAccounts, getCurrentAccount, migrateV2, needsMigrationV2 } from '@/lib/account'
 import { sleep } from '@/lib/helpers'
 
 const router = useRouter()
@@ -28,7 +28,7 @@ needsMigrationV2().then(async (needsMigration: boolean) => {
     showingMigrationCover.value = true
 
     await migrateV2()
-    await sleep(3000)
+    await sleep(1000)
 
     showingMigrationCover.value = false
 

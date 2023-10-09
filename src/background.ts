@@ -4,7 +4,6 @@ import { NOTIFICATION_HEIGHT, NOTIFICATION_WIDTH } from './data/config'
 import connector from './lib/connector'
 import { getCurrentAccount } from './lib/account'
 import { isLocked } from './lib/password'
-import { signTransactionEx } from './lib/tx-sign-ex'
 import { hostsWhiteList, authorizeActionsWhiteList } from './data/white'
 import authorizeActions from './data/authorize-actions'
 

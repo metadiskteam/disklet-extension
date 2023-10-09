@@ -17,7 +17,7 @@ import {
 } from '@headlessui/vue'
 import { TrashIcon, CheckIcon, ChevronUpDownIcon, ChevronRightIcon } from '@heroicons/vue/24/solid'
 
-import MetaletLogoImg from '@/assets/images/disklet-logo.png?url'
+import MetaletLogoImg from '@/assets/images/metalet-logo.png?url'
 import { addAccount } from '@/lib/account'
 import { deriveAllAddresses, scripts, type AddressType } from '@/lib/bip32-deriver'
 
